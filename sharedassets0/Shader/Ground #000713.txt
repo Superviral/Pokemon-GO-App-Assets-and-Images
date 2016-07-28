@@ -1,0 +1,130 @@
+Shader "Niantic/World Map/Ground" {
+Properties {
+ _MainTex ("Base (RGB)", 2D) = "white" { }
+ _TextureScale ("Texture Scale", Float) = 0.01
+ _ColorRamp ("1D Gradient Ramp (RGB)", 2D) = "white" { }
+ _NearDist ("Near Distance", Float) = 100
+ _FarDist ("Far Distance", Float) = 250
+ _Offset ("Z Offset", Float) = 10
+}
+SubShader { 
+ LOD 150
+ Tags { "RenderType"="Opaque" }
+ Pass {
+  Name "FORWARD"
+  Tags { "LIGHTMODE"="ForwardBase" "SHADOWSUPPORT"="true" "RenderType"="Opaque" }
+  Offset [_Offset], [_Offset]
+  GpuProgramID 41281
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 0
+}
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+SubProgram "gles " {
+GpuProgramIndex 2
+}
+SubProgram "gles " {
+GpuProgramIndex 3
+}
+SubProgram "gles " {
+GpuProgramIndex 4
+}
+SubProgram "gles " {
+GpuProgramIndex 5
+}
+SubProgram "gles " {
+GpuProgramIndex 6
+}
+SubProgram "gles " {
+GpuProgramIndex 7
+}
+SubProgram "gles " {
+GpuProgramIndex 8
+}
+SubProgram "gles " {
+GpuProgramIndex 9
+}
+SubProgram "gles " {
+GpuProgramIndex 10
+}
+SubProgram "gles " {
+GpuProgramIndex 11
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 12
+}
+SubProgram "gles " {
+GpuProgramIndex 13
+}
+SubProgram "gles " {
+GpuProgramIndex 14
+}
+SubProgram "gles " {
+GpuProgramIndex 15
+}
+SubProgram "gles " {
+GpuProgramIndex 16
+}
+SubProgram "gles " {
+GpuProgramIndex 17
+}
+}
+ }
+ Pass {
+  Name "PREPASS"
+  Tags { "LIGHTMODE"="PrePassBase" "RenderType"="Opaque" }
+  Offset [_Offset], [_Offset]
+  GpuProgramID 97488
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 18
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 19
+}
+}
+ }
+ Pass {
+  Name "PREPASS"
+  Tags { "LIGHTMODE"="PrePassFinal" "RenderType"="Opaque" }
+  ZWrite Off
+  Offset [_Offset], [_Offset]
+  GpuProgramID 134722
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 20
+}
+SubProgram "gles " {
+GpuProgramIndex 21
+}
+SubProgram "gles " {
+GpuProgramIndex 22
+}
+SubProgram "gles " {
+GpuProgramIndex 23
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 24
+}
+SubProgram "gles " {
+GpuProgramIndex 25
+}
+SubProgram "gles " {
+GpuProgramIndex 26
+}
+SubProgram "gles " {
+GpuProgramIndex 27
+}
+}
+ }
+}
+Fallback "Legacy Shaders/Transparent/Diffuse"
+}

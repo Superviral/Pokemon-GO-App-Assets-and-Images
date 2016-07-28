@@ -1,0 +1,113 @@
+Shader "Legacy Shaders/Transparent/Diffuse" {
+Properties {
+ _Color ("Main Color", Color) = (1,1,1,1)
+ _MainTex ("Base (RGB) Trans (A)", 2D) = "white" { }
+}
+SubShader { 
+ LOD 200
+ Tags { "QUEUE"="Transparent" "IGNOREPROJECTOR"="true" "RenderType"="Transparent" }
+ Pass {
+  Name "FORWARD"
+  Tags { "LIGHTMODE"="ForwardBase" "QUEUE"="Transparent" "IGNOREPROJECTOR"="true" "RenderType"="Transparent" }
+  ZWrite Off
+  Blend SrcAlpha OneMinusSrcAlpha
+  ColorMask RGB
+  GpuProgramID 3252
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 0
+}
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+SubProgram "gles " {
+GpuProgramIndex 2
+}
+SubProgram "gles " {
+GpuProgramIndex 3
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 4
+}
+SubProgram "gles " {
+GpuProgramIndex 5
+}
+}
+ }
+ Pass {
+  Name "FORWARD"
+  Tags { "LIGHTMODE"="ForwardAdd" "QUEUE"="Transparent" "IGNOREPROJECTOR"="true" "RenderType"="Transparent" }
+  ZWrite Off
+  Blend SrcAlpha One
+  ColorMask RGB
+  GpuProgramID 78428
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 6
+}
+SubProgram "gles " {
+GpuProgramIndex 7
+}
+SubProgram "gles " {
+GpuProgramIndex 8
+}
+SubProgram "gles " {
+GpuProgramIndex 9
+}
+SubProgram "gles " {
+GpuProgramIndex 10
+}
+SubProgram "gles " {
+GpuProgramIndex 11
+}
+SubProgram "gles " {
+GpuProgramIndex 12
+}
+SubProgram "gles " {
+GpuProgramIndex 13
+}
+SubProgram "gles " {
+GpuProgramIndex 14
+}
+SubProgram "gles " {
+GpuProgramIndex 15
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 16
+}
+SubProgram "gles " {
+GpuProgramIndex 17
+}
+SubProgram "gles " {
+GpuProgramIndex 18
+}
+SubProgram "gles " {
+GpuProgramIndex 19
+}
+SubProgram "gles " {
+GpuProgramIndex 20
+}
+SubProgram "gles " {
+GpuProgramIndex 21
+}
+SubProgram "gles " {
+GpuProgramIndex 22
+}
+SubProgram "gles " {
+GpuProgramIndex 23
+}
+SubProgram "gles " {
+GpuProgramIndex 24
+}
+SubProgram "gles " {
+GpuProgramIndex 25
+}
+}
+ }
+}
+Fallback "Legacy Shaders/Transparent/VertexLit"
+}

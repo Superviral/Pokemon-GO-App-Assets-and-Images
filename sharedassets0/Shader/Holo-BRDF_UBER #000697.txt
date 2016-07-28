@@ -1,0 +1,77 @@
+Shader "Niantic/BRDF/UBER : vtxMask, uvAnimations, EyeShader" {
+Properties {
+ _MainTex ("Base (RGB) Gloss (A)", 2D) = "white" { }
+ _Ramp2D ("BRDF Ramp", 2D) = "grey" { }
+[KeywordEnum(DIFF, VCOLOR_DEBUG)]  NIANTIC_MODE ("BRDF Normal or Debug", Float) = 0
+ _Amount_Blend ("BRDF Amount", Range(0,2)) = 1
+ _Amount_Wrap ("Lambert Wrap Amount", Range(0,1)) = 0
+ _cTint ("Tint", Color) = (0,0,0,0.5)
+ _cDiff ("Diffuse", Color) = (1,1,1,0.5)
+ _cAmbn ("Ambient", Color) = (0,0,0,0.5)
+ _cKeyf ("Specular (.a=0.5)", Color) = (1,1,1,0.5)
+ _cRimt ("RimTop   (.a=0.5)", Color) = (1,1,0,0.5)
+ _cRimb ("RimBottom(.a=0.5)", Color) = (0.5,0.5,0.5,0.5)
+ _Amount_RimLt ("RimLight Mult", Range(0,2)) = 1
+ _vAmOc ("vAmbOcclusion", Color) = (0,0,0,1)
+[Space] [Header(SPECULAR_SHADER_ACTIVATE____________)] [Space] [KeywordEnum(NONE, VERTEX, PIXEL, EYE_DEBUG)]  BRB_SPECULAR ("Toggle for Specular", Float) = 0
+ _EyeSpec ("Specular", Range(0,1)) = 1
+ _EyeGloss ("Glossiness", Range(0.025,100)) = 0.95
+ _EyeIllum ("Eye Illum", Range(0.85,2)) = 1
+ _EyeTiles ("Tile Count 'U', 'V', 'U Scale', 'V Scale'", Vector) = (2,4,1,1)
+ _Roundness ("Roundness UV 'Offset', 'UNUSED','Strength'", Vector) = (0,0,1,1)
+ _EyeMirrorOffset ("Mirror U Offset (keep for now)", Range(0,2)) = 1
+[Space] [Header(UV_ANIMATION_SETTINGS_______________)] [Space] [Toggle(NIANTIC_UV_ANIMATE)]  _UVAnimated ("Activates UV Animation", Float) = 0
+ _uv0 ("uv animation 0 (green)", Vector) = (0,0,4,0)
+ _uv1 ("uv animation 1 (red  )", Vector) = (0,0,4,2)
+ _uv2 ("uv animation 2 (blue )", Vector) = (0,0,4,2)
+[Space] [Header(ACIVATED_IGNORES_USE_VERTEXMASKS____)] [Space] [Space] [Header(USE_VERTEXMASKS_____________________)] [Space] [Header(COLOR____red_vRedd____green_vGren____blue_vBlue)] [Header(SP_AM_AO_red_specrim_green_ambient_blue_AO___)] [Space] [KeywordEnum(COLOR, SP_AM_AO)]  NIANTIC_VERTEX ("Allows vertex variance on shared material ", Float) = 0
+ _vGren ("vGreen Channel", Color) = (1,1,1,0.5)
+ _vRedd ("vRed   Channel", Color) = (1,1,1,0.5)
+ _vBlue ("vBlue  Channel", Color) = (1,1,1,0.5)
+[Header(STENCIL_ID_TO_CONTROL_SORTING_SPECIAL_FX)]  _Stencil ("Stencil ID", Float) = 0
+[Enum(UnityEngine.Rendering.CompareFunction)]  _StencilComp ("Stencil Compare Function", Float) = 0
+[Enum(UnityEngine.Rendering.StencilOp)]  _StencilOp ("Stencil Operation", Float) = 0
+}
+SubShader { 
+ Tags { "QUEUE"="Geometry+1" "RenderType"="Opaque" }
+ Pass {
+  Name "FORWARD"
+  Tags { "LIGHTMODE"="ForwardBase" "QUEUE"="Geometry+1" "RenderType"="Opaque" }
+  Stencil {
+   Ref [_Stencil]
+   Comp [_StencilComp]
+   Pass [_StencilOp]
+  }
+  GpuProgramID 6979
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 0
+}
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+SubProgram "gles " {
+GpuProgramIndex 2
+}
+SubProgram "gles " {
+GpuProgramIndex 3
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 4
+}
+SubProgram "gles " {
+GpuProgramIndex 5
+}
+SubProgram "gles " {
+GpuProgramIndex 6
+}
+SubProgram "gles " {
+GpuProgramIndex 7
+}
+}
+ }
+}
+Fallback "Mobile/Diffuse"
+}

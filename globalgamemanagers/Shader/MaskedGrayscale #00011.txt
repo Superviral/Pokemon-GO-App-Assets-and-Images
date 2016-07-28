@@ -1,0 +1,28 @@
+Shader "Hidden/MaskedGrayscale" {
+Properties {
+ _MainTex ("Base (RGB)", 2D) = "white" { }
+ _MaskTex ("Mask (A)", 2D) = "white" { }
+ _MaskOffValue ("_MaskOffValue", Float) = 1
+ _MaskOnValue ("_MaskOnValue", Float) = 1
+ _RampTex ("Ramp (RGB)", 2D) = "grayscaleRamp" { }
+}
+SubShader { 
+ Pass {
+  ZTest Always
+  ZWrite Off
+  Cull Off
+  GpuProgramID 23130
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 0
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+}
+ }
+}
+Fallback Off
+}

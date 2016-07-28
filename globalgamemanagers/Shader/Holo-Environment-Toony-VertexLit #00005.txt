@@ -1,0 +1,53 @@
+Shader "Holo/Environment/Vertex Lit" {
+Properties {
+[KeywordEnum(Opaque, Cutout)]  _Render ("Rendering Mode", Float) = 0
+[KeywordEnum(Off, Diffuse)]  _ColorMode ("Color Modifier Mode", Float) = 0
+ _Color ("    Color", Color) = (1,1,1,1)
+[KeywordEnum(Off, Diffuse)]  _VertexMode ("Vertex Color Mode", Float) = 1
+ _MainTex ("Base (RGBA)", 2D) = "white" { }
+[Toggle(_MIRROR_U_CLAMP_V)]  _MirrorU ("    Mirror U (only use if texture is clamped, but you want V wrapped)", Float) = 0
+[Toggle(_MIRROR_V_CLAMP_U)]  _MirrorV ("    Mirror V (only use if texture is clamped, but you want U wrapped)", Float) = 0
+[KeywordEnum(None, Unlit)]  _BaseAlpha ("    Alpha Mode", Float) = 0
+ _AlphaTestRef ("    Alpha Cutoff", Range(0,1)) = 0.5
+[Toggle(BRB_RAMP)]  _RampEnable ("Use Toon Ramp", Float) = 0
+ _Ramp ("Toon Ramp (RGBA)", 2D) = "gray" { }
+[Enum(UnityEngine.Rendering.CullMode)]  _Cull ("Culling Mode (None = double-sided)", Float) = 2
+[Toggle(BRB_LIGHTING_TWOSIDED)]  _LightingDoubleSided ("    Two-sided lighting", Float) = 0
+[Toggle(BRB_FX_DISABLE)]  _FX ("Ignore FX Color", Float) = 0
+}
+SubShader { 
+ LOD 100
+ Tags { "RenderType"="Opaque" }
+ Pass {
+  Name "CASTER"
+  Tags { "LIGHTMODE"="SHADOWCASTER" "RenderType"="Opaque" }
+  GpuProgramID 26717
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 0
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+}
+ }
+ Pass {
+  Tags { "LIGHTMODE"="ForwardBase" "RenderType"="Opaque" }
+  Cull [_Cull]
+  GpuProgramID 118782
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 2
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+}
+ }
+}
+Fallback Off
+}

@@ -1,0 +1,175 @@
+Shader "Niantic/BRDF/Basic" {
+Properties {
+ _MainTex ("Base (RGB) Gloss (A)", 2D) = "white" { }
+ _Ramp2D ("BRDF Ramp", 2D) = "grey" { }
+ _Amount_Blend ("BRDF Amount", Range(0,2)) = 1
+ _Amount_Wrap ("Lambert Wrap Amount", Range(0,1)) = 0
+ _cTint ("Tint", Color) = (0,0,0,0.5)
+ _cDiff ("Diffuse", Color) = (1,1,1,0.5)
+ _cAmbn ("Ambient", Color) = (0,0,0,0.5)
+ _cKeyf ("Specular (.a=0.5)", Color) = (1,1,1,0.5)
+ _cRimt ("RimTop   (.a=0.5)", Color) = (1,1,0,0.5)
+ _cRimb ("RimBottom(.a=0.5)", Color) = (0,0,1,0.5)
+ _Amount_RimLt ("RimLight Mult", Range(0,2)) = 1
+ _vAmOc ("vAmbOcclusion", Color) = (0,0,0,1)
+}
+SubShader { 
+ Tags { "RenderType"="Opaque" }
+ Pass {
+  Name "FORWARD"
+  Tags { "LIGHTMODE"="ForwardBase" "SHADOWSUPPORT"="true" "RenderType"="Opaque" }
+  GpuProgramID 65190
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 0
+}
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+SubProgram "gles " {
+GpuProgramIndex 2
+}
+SubProgram "gles " {
+GpuProgramIndex 3
+}
+SubProgram "gles " {
+GpuProgramIndex 4
+}
+SubProgram "gles " {
+GpuProgramIndex 5
+}
+SubProgram "gles " {
+GpuProgramIndex 6
+}
+SubProgram "gles " {
+GpuProgramIndex 7
+}
+SubProgram "gles " {
+GpuProgramIndex 8
+}
+SubProgram "gles " {
+GpuProgramIndex 9
+}
+SubProgram "gles " {
+GpuProgramIndex 10
+}
+SubProgram "gles " {
+GpuProgramIndex 11
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 12
+}
+SubProgram "gles " {
+GpuProgramIndex 13
+}
+SubProgram "gles " {
+GpuProgramIndex 14
+}
+SubProgram "gles " {
+GpuProgramIndex 15
+}
+SubProgram "gles " {
+GpuProgramIndex 16
+}
+SubProgram "gles " {
+GpuProgramIndex 17
+}
+}
+ }
+ Pass {
+  Name "FORWARD"
+  Tags { "LIGHTMODE"="ForwardAdd" "RenderType"="Opaque" }
+  ZWrite Off
+  Blend One One
+  GpuProgramID 96606
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 18
+}
+SubProgram "gles " {
+GpuProgramIndex 19
+}
+SubProgram "gles " {
+GpuProgramIndex 20
+}
+SubProgram "gles " {
+GpuProgramIndex 21
+}
+SubProgram "gles " {
+GpuProgramIndex 22
+}
+SubProgram "gles " {
+GpuProgramIndex 23
+}
+SubProgram "gles " {
+GpuProgramIndex 24
+}
+SubProgram "gles " {
+GpuProgramIndex 25
+}
+SubProgram "gles " {
+GpuProgramIndex 26
+}
+SubProgram "gles " {
+GpuProgramIndex 27
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 28
+}
+SubProgram "gles " {
+GpuProgramIndex 29
+}
+SubProgram "gles " {
+GpuProgramIndex 30
+}
+SubProgram "gles " {
+GpuProgramIndex 31
+}
+SubProgram "gles " {
+GpuProgramIndex 32
+}
+SubProgram "gles " {
+GpuProgramIndex 33
+}
+SubProgram "gles " {
+GpuProgramIndex 34
+}
+SubProgram "gles " {
+GpuProgramIndex 35
+}
+SubProgram "gles " {
+GpuProgramIndex 36
+}
+SubProgram "gles " {
+GpuProgramIndex 37
+}
+}
+ }
+ Pass {
+  Name "SHADOWCASTER"
+  Tags { "LIGHTMODE"="SHADOWCASTER" "SHADOWSUPPORT"="true" "RenderType"="Opaque" }
+  GpuProgramID 245343
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 38
+}
+SubProgram "gles " {
+GpuProgramIndex 39
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 40
+}
+SubProgram "gles " {
+GpuProgramIndex 41
+}
+}
+ }
+}
+Fallback "Mobile/Diffuse"
+}

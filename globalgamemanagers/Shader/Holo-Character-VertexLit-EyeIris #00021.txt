@@ -1,0 +1,50 @@
+Shader "Holo/Character/Eye Shade/Irises/Vertex Lit" {
+Properties {
+ _Ambient ("Ambient Multiplier", Color) = (1,1,1,1)
+ _MainTex ("Base (RGB)", 2D) = "white" { }
+[Toggle(_MIRROR_U_CLAMP_V)]  _MirrorU ("    Mirror U (only use if texture is clamped, but you want V wrapped)", Float) = 0
+[Toggle(_MIRROR_V_CLAMP_U)]  _MirrorV ("    Mirror V (only use if texture is clamped, but you want U wrapped)", Float) = 0
+[KeywordEnum(None, Unlit)]  _BaseAlpha ("    Alpha Mode", Float) = 0
+ _lIris ("Left Iris/Pupil (RGBA)", 2D) = "black" { }
+ _rIris ("Right Iris/Pupil (RGBA)", 2D) = "black" { }
+ _OsNormalMap ("Eye Mask (Alpha)", 2D) = "gray" { }
+[Toggle(BRB_EYE_ADD_MASKS)]  _AddMask ("    Add Base Alpha with Eye Mask (special eye case)", Float) = 0
+ _Ramp ("Toon Ramp (RGBA)", 2D) = "gray" { }
+[Enum(UnityEngine.Rendering.CullMode)]  _Cull ("Culling Mode (None = double-sided)", Float) = 2
+}
+SubShader { 
+ LOD 100
+ Tags { "RenderType"="Opaque" }
+ Pass {
+  Name "CASTER"
+  Tags { "LIGHTMODE"="SHADOWCASTER" "RenderType"="Opaque" }
+  GpuProgramID 37362
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 0
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+}
+ }
+ Pass {
+  Tags { "LIGHTMODE"="ForwardBase" "RenderType"="Opaque" }
+  Cull [_Cull]
+  GpuProgramID 87700
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 2
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+}
+ }
+}
+Fallback Off
+}

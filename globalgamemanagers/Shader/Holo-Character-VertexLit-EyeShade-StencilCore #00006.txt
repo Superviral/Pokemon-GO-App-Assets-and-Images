@@ -1,0 +1,57 @@
+Shader "Holo/Character/Eye Shade/Vertex Lit - Stencil Core" {
+Properties {
+ _Ambient ("Ambient Multiplier", Color) = (1,1,1,1)
+ _MainTex ("Base (RGB A=Eye Mask)", 2D) = "white" { }
+[Toggle(_MIRROR_U_CLAMP_V)]  _MirrorU ("    Mirror U (only use if texture is clamped, but you want V wrapped)", Float) = 0
+[Toggle(_MIRROR_V_CLAMP_U)]  _MirrorV ("    Mirror V (only use if texture is clamped, but you want U wrapped)", Float) = 0
+[KeywordEnum(None, Unlit)]  _BaseAlpha ("    Alpha Mode", Float) = 0
+[HideInInspector]  _OsNormalMap ("Fallback Eye Mask (A=Eye Mask)", 2D) = "gray" { }
+[HideInInspector] [Toggle(BRB_EYE_ADD_MASKS)]  _AddMask ("    Add alpha from Base with OS Normal (special eye case)", Float) = 0
+ _Ramp ("Toon Ramp (RGBA)", 2D) = "gray" { }
+ _Stencil ("Stencil ID", Float) = 0
+[Enum(UnityEngine.Rendering.CullMode)]  _Cull ("Culling Mode (None = double-sided)", Float) = 2
+}
+SubShader { 
+ LOD 100
+ Tags { "QUEUE"="Geometry+1" "RenderType"="Opaque" }
+ Pass {
+  Name "CASTER"
+  Tags { "LIGHTMODE"="SHADOWCASTER" "QUEUE"="Geometry+1" "RenderType"="Opaque" }
+  Stencil {
+   Ref [_Stencil]
+   Pass Replace
+  }
+  GpuProgramID 42502
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 0
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+}
+ }
+ Pass {
+  Tags { "LIGHTMODE"="ForwardBase" "QUEUE"="Geometry+1" "RenderType"="Opaque" }
+  Cull [_Cull]
+  Stencil {
+   Ref [_Stencil]
+   Pass Replace
+  }
+  GpuProgramID 124551
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 2
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+}
+ }
+}
+Fallback Off
+}

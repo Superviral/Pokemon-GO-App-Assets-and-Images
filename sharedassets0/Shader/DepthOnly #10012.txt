@@ -1,0 +1,26 @@
+Shader "Hidden/DepthOnly" {
+SubShader { 
+ Tags { "QUEUE"="Transparent-2" "IGNOREPROJECTOR"="true" "RenderType"="Transparent" }
+ Pass {
+  Tags { "QUEUE"="Transparent-2" "IGNOREPROJECTOR"="true" "RenderType"="Transparent" }
+  ColorMask 0
+  GpuProgramID 27799
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 0
+}
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 2
+}
+SubProgram "gles " {
+GpuProgramIndex 3
+}
+}
+ }
+}
+}

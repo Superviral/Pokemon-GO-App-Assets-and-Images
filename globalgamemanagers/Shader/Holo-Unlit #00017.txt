@@ -1,0 +1,39 @@
+Shader "Holo/Unlit" {
+Properties {
+[KeywordEnum(Opaque, Cutout)]  _Render ("Rendering Mode", Float) = 0
+ _MainTex ("Base (RGB)", 2D) = "white" { }
+[KeywordEnum(Off, Clamp_V, Wrap_V)]  _Mirror_U ("    U Mirror (use only if texture is clamped - wrap V has issues)", Float) = 0
+[KeywordEnum(Off, Clamp_U, Wrap_U)]  _Mirror_V ("    V Mirror (use only if texture is clamped - wrap U has issues)", Float) = 0
+[Toggle(BRB_SCREENSPACE)]  _ScreenSpace ("    Use screenspace coordinates", Float) = 0
+[Toggle(BRB_SCROLL)]  _Scroll ("    Scroll base texture", Float) = 0
+ _ScrollU ("    Scroll U/X speed", Range(-30,30)) = 0
+ _ScrollV ("    Scroll V/Y speed", Range(-30,30)) = 0
+ _AlphaTestRef ("    Alpha Cutoff", Range(0,1)) = 0.5
+[Toggle(_VERTEXMODE_DIFFUSE)]  _VertexMode ("Vertex Color Multiply", Float) = 0
+[KeywordEnum(Off, Fog, Composite)]  _Fog ("Fog Mode", Float) = 0
+ _FogAlpha ("Fog Alpha (an override)", Range(0,1)) = 1
+[Enum(UnityEngine.Rendering.CullMode)]  _Cull ("Culling Mode (None = double-sided)", Float) = 2
+[Toggle(BRB_SHADOW)]  _Shadow ("Treat as environment?", Float) = 0
+[Toggle(BRB_FX_DISABLE)]  _FX ("Ignore FX Color", Float) = 0
+}
+SubShader { 
+ LOD 100
+ Tags { "RenderType"="Opaque" }
+ Pass {
+  Tags { "RenderType"="Opaque" }
+  Cull [_Cull]
+  GpuProgramID 221
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 0
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+}
+ }
+}
+Fallback Off
+}

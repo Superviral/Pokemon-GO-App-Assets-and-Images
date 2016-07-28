@@ -1,0 +1,46 @@
+Shader "Hidden/Holo/Glass Fallback (Two-sided Diffuse)" {
+Properties {
+[KeywordEnum(Off, Diffuse, GlassTint, GlassBlend)]  _ColorMode ("Color Modifier Mode", Float) = 0
+ _Color ("    Color", Color) = (1,1,1,1)
+[KeywordEnum(Off, Diffuse)]  _VertexMode ("Vertex Color Mode", Float) = 1
+ _MainTex ("Base (RGBA)", 2D) = "white" { }
+[Toggle(_MIRROR_U_CLAMP_V)]  _MirrorU ("    Mirror U (only use if texture is clamped, but you want V wrapped)", Float) = 0
+[Toggle(_MIRROR_V_CLAMP_U)]  _MirrorV ("    Mirror V (only use if texture is clamped, but you want U wrapped)", Float) = 0
+[KeywordEnum(None, Unlit)]  _BaseAlpha ("    Alpha Mode", Float) = 0
+ _AlphaTestRef ("    Alpha Cutoff", Range(0,1)) = 0.5
+ _Ramp ("Toon Ramp (RGBA)", 2D) = "gray" { }
+ _Specularity ("Specularity", Range(0,2)) = 1
+ _Glossiness ("Specular Glossiness", Range(0.025,1)) = 0.95
+[KeywordEnum(None, Specularity, Cubemap)]  _Fresnel ("Fresnel Mode", Float) = 0
+ _FresnelBias ("    Fresnel Bias", Range(0,1)) = 0.2
+ _FresnelPower ("    Fresnel Power", Range(0,5)) = 2
+}
+SubShader { 
+ LOD 1
+ Tags { "QUEUE"="Transparent" "RenderType"="TransparentCutout" }
+ Pass {
+  Name "SHADOWCASTER"
+  Tags { "LIGHTMODE"="SHADOWCASTER" "QUEUE"="Transparent" "SHADOWSUPPORT"="true" "RenderType"="TransparentCutout" }
+  Cull Off
+  Blend One OneMinusSrcAlpha, One One
+  GpuProgramID 36827
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 0
+}
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 2
+}
+SubProgram "gles " {
+GpuProgramIndex 3
+}
+}
+ }
+}
+Fallback Off
+}

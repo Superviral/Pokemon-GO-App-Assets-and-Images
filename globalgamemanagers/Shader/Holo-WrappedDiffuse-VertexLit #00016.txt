@@ -1,0 +1,43 @@
+Shader "Holo/Wrapped Diffuse/Vertex Lit" {
+Properties {
+ _MainTex ("Base (RGBA)", 2D) = "white" { }
+[Toggle(_MIRROR_U_CLAMP_V)]  _MirrorU ("    Mirror U (only use if texture is clamped, but you want V wrapped)", Float) = 0
+[Toggle(_MIRROR_V_CLAMP_U)]  _MirrorV ("    Mirror V (only use if texture is clamped, but you want U wrapped)", Float) = 0
+[KeywordEnum(None, Unlit)]  _BaseAlpha ("    Alpha Mode", Float) = 0
+ _RampOverlayColor ("Ramp Overlay Color (RGB)", Color) = (0.5,0.5,0.5,0.5)
+}
+SubShader { 
+ LOD 100
+ Tags { "RenderType"="Opaque" }
+ Pass {
+  Name "CASTER"
+  Tags { "LIGHTMODE"="SHADOWCASTER" "RenderType"="Opaque" }
+  GpuProgramID 54306
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 0
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+}
+ }
+ Pass {
+  Tags { "LIGHTMODE"="ForwardBase" "RenderType"="Opaque" }
+  GpuProgramID 114990
+Program "vp" {
+SubProgram "gles " {
+GpuProgramIndex 2
+}
+}
+Program "fp" {
+SubProgram "gles " {
+GpuProgramIndex 1
+}
+}
+ }
+}
+Fallback Off
+}
