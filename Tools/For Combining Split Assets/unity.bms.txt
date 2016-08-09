@@ -1,0 +1,514 @@
+# Unity Engine assets extractor (script 0.2.4)
+# written by aluigi
+# type distinction, split files combining and sound resource retrieval by AlphaTwentyThree
+#
+#   It supports the following versions and probably others:
+#     6 used in Unity ??? (probably 2.x)
+#     8 used in Unity 3.x
+#     9 used in Unity 4.x
+#     0xe used in Unity 5.x
+#
+#   Press 'r' when QuickBMS will ask you to overwrite existent files!
+#   That's necessary because some resources have the same name
+#
+#   The script will extract the resources in folders having the file type as name
+#   so it's more easy to edit and identify the files of the same type
+#
+# script for QuickBMS http://quickbms.aluigi.org
+
+math GUESS_NAMES = 1    # set to 0 to avoid possible rare problems
+                        # or if you are sure that there are no names
+
+quickbmsver "0.6.7"
+
+# from my tests:
+# - all the mainData are nameless
+# - only some *.assets are nameless
+# I have not found a point where it's written if a resource is nameless or not
+get FULL_NAME filename
+if FULL_NAME == "mainData"
+    math GUESS_NAMES = 0
+endif
+
+get EXT extension
+if EXT == "split0"
+   callfunction combine_splits 1
+   open FDSE BNAME
+endif
+
+endian big
+
+getdstring SIGN 8
+if SIGN == "UnityRaw"
+    get ZERO long
+    get DUMMY byte
+    get VERSION_STRING string
+    get VERSION_STRING string
+    for x = 0 < 9
+        get DUMMY long
+    next x
+    get ENTRIES byte
+    savepos BASE_OFF
+    math BASE_OFF - 4
+    for x = 0 < ENTRIES
+        get NAME string
+        get OFFSET long
+        get SIZE long
+        padding 4
+        if ENTRIES > 1
+            math OFFSET + BASE_OFF
+            log NAME OFFSET SIZE
+        endif
+    next x
+    if ENTRIES > 1
+        cleanexit
+    endif
+elif SIGN == "UnityWeb"
+    print "Error: you must use the unity3d_webplayer.bms script for this archive"
+    cleanexit
+else
+    goto 0
+endif
+
+savepos TMP_OFF
+get HEADER_SIZE long
+get FULL_SIZE long
+get VERSION long
+get BASE_OFF long
+math BASE_OFF + TMP_OFF
+
+math ZERO_GUESS = 0
+if VERSION <= 8
+    xmath OFFSET "BASE_OFF + (FULL_SIZE - HEADER_SIZE)"
+    goto OFFSET
+    get DUMMY byte
+else
+    # version 9 tested
+    get ZERO_GUESS long
+endif
+
+endian little
+endian guess ZERO_GUESS
+if VERSION >= 8
+    get VERSION_STRING string
+    print "%VERSION_STRING%"
+    get DUMMY long
+endif
+if VERSION >= 0xe
+    get ZERO byte
+    if ZERO == 0
+        get BASES long
+        for i = 0 < BASES
+            get DUMMY signed_long
+            if DUMMY < 0
+                getdstring DUMMY 0x20
+            else
+                getdstring DUMMY 0x10
+            endif
+        next i
+    else
+        # lame work-around!
+        for OK = 0 == 0
+            # INDEX 1 + ZERO
+            findloc SCAN_OFFSET binary "\x01\x00\x00\x00\x00\x00\x00\x00"
+            if SCAN_OFFSET > BASE_OFF
+                cleanexit
+            endif
+            if SCAN_OFFSET & 3
+                math SCAN_OFFSET + 1
+                goto SCAN_OFFSET
+            else
+                goto SCAN_OFFSET
+                get INDEX long
+                get ZERO long
+                get OFFSET long
+                get SIZE long
+                get TYPE long
+                get XTYPE short # same as TYPE
+                get DUMMY short # -1
+                math ZERO = 0
+                if VERSION >= 0xf
+                    get ZERO long
+                endif
+                if TYPE == XTYPE
+                if DUMMY == 0xffff
+                if ZERO == 0
+                    math OK = 1
+                endif
+                endif
+                endif
+            endif
+        next
+        math SCAN_OFFSET - 8
+        goto SCAN_OFFSET
+        get DUMMYSTR string # last part of the whole string
+    endif
+else
+    get BASES long
+    for BASE = 0 < BASES
+        get DUMMY long
+        math SUB_ELEMENTS = 1
+        callfunction PARSE_TYPES
+    next BASE
+endif
+
+math ADDITIONAL_FIELD = 0
+if VERSION >= 7
+if VERSION < 0xe
+    get ADDITIONAL_FIELD long
+endif
+endif
+get FILES long
+
+if VERSION >= 0xe
+    padding 4
+endif
+set SIZE_RESS 0
+set FIRST 1
+set a -1
+for i = 0 < FILES
+
+    get INDEX long
+    if INDEX == 0
+    if i == 0
+        math ADDITIONAL_FIELD = 1
+    endif
+    endif
+    if ADDITIONAL_FIELD != 0
+        get ZERO long
+    endif
+
+    if VERSION >= 0xe
+        get ZERO long
+        get OFFSET long
+        get SIZE long
+        get TYPE long
+        get XTYPE short # same as TYPE
+        get DUMMY short # -1
+        if VERSION >= 0xf
+            get ZERO long
+        endif
+    else
+        get OFFSET long
+        get SIZE long
+        get TYPE long
+        get XTYPE long  # same as TYPE
+    endif
+
+    savepos TMP_OFF
+    xmath OFFSET_TMP "OFFSET + BASE_OFF"
+    goto OFFSET_TMP
+
+    math GET_FILENAMES = 0
+    if GUESS_NAMES != 0
+        get NAMESZ long
+        if NAMESZ u< 128
+            getdstring NAME NAMESZ
+            strlen TMP NAME
+            if TMP == NAMESZ
+                math GET_FILENAMES = 1
+            endif
+        endif
+        goto OFFSET_TMP
+    endif
+
+    set NAME string ""
+    if GET_FILENAMES != 0
+        get NAMESZ long
+        getdstring NAME NAMESZ
+        padding 4
+    endif
+    savepos OFFSET
+    goto TMP_OFF
+
+    xmath TMP "SIZE - (OFFSET - OFFSET_TMP)"
+    if TMP < 0
+        math OFFSET = OFFSET_TMP
+    else
+        math SIZE = TMP
+    endif
+    get BNAME basename
+    
+    getvarchr TMP NAME 0
+    if TMP <= 0x20
+        string NAME p= "%s_%d" BNAME i
+    endif
+    
+    callfunction disttype 1
+	#string FNAME p= "TYPE_%d/%s%s" TYPE NAME EXT
+    string FNAME p= "%s~%s%s" BNAME NAME EXT
+	
+	if EXT == ".snd"
+		if FIRST == 1 # open only first time
+			get ONAME filename
+			string ONAME += ".resS"
+			open FDSE ONAME 1 EXISTS
+			if EXISTS == 1
+				set FIRST 0
+				set R "resS"
+			else
+				get ONAME basename
+				string ONAME += ".resource"
+				open FDSE ONAME 1 EXISTS
+				if EXISTS == 1
+					set FIRST 0
+					set R "resource"
+				endif
+			endif
+		endif
+		if SIZE >= 0x18
+			if R == "resS" # probably corresponding audio file in resS archive
+				if EXISTS == 1
+					savepos MYOFF 0
+					xmath GO "OFFSET + 0x10"
+					goto GO 0
+					get SIZE2 long 0
+					get OFFSET2 long 0
+					math a += 1 # first time to 0
+					putArray 0 a OFFSET2 # for retrieval in later step
+					putArray 1 a SIZE2
+					if SIZE2 != 0
+						savepos MYOFF2
+						callfunction diff_type 1
+						goto MYOFF2
+						#string FNAME p= "TYPE_%d/%s%s" TYPE NAME EXT
+						string FNAME p= "%s~%s%s" BNAME NAME EXT
+						log FNAME OFFSET2 SIZE2 1
+					endif
+					goto MYOFF 0
+					math SIZE_RESS += SIZE2
+				else
+					log FNAME OFFSET SIZE 0
+				endif
+			elif R == "resource" # corresponding to *.resource file (fsb5)
+				if EXISTS == 1
+					savepos MYOFF
+					goto OFFSET
+					getDstring DUMMY 0x20
+					get NAMEL long
+					getDstring ONAME NAMEL
+					savepos TEMP
+					math TEMP x= 4
+					goto TEMP
+					get OFFSET2 long
+					get DUMMY long
+					get SIZE2 long
+					math a += 1 # first time to 0
+					putArray 0 a OFFSET2 # for retrieval in later step
+					putArray 1 a SIZE2
+					if FIRST == 1
+						open FDSE ONAME 1 EXISTS
+						if EXISTS == 1
+							set FIRST 0
+						endif
+					endif
+					if SIZE2 != 0
+						callfunction diff_type 1
+						string FNAME p= "%s~%s%s" BNAME NAME EXT
+						log FNAME OFFSET2 SIZE2 1
+					endif
+					goto MYOFF
+					math SIZE_RESS += SIZE2
+				else
+					log FNAME OFFSET SIZE 0
+				endif
+			else
+				log FNAME OFFSET SIZE 0
+			endif
+		else
+			log FNAME OFFSET SIZE 0
+		endif
+	else
+		log FNAME OFFSET SIZE 0
+	endif
+next i
+callfunction testresS 1
+
+startfunction PARSE_TYPES
+    math ELEMENTS = SUB_ELEMENTS
+    for ELEMENT = 0 < ELEMENTS
+        get TYPE string
+        get NAME string
+        get SIZE long
+        get INDEX long
+        get ZERO long
+        get DUMMY long
+        get DUMMY long
+        get SUB_ELEMENTS long
+        if SUB_ELEMENTS != 0
+            callfunction PARSE_TYPES
+        endif
+    next ELEMENT
+endfunction
+
+startfunction disttype
+    savepos disttype_offset # backup offset
+    goto OFFSET             # maybe useful
+
+    string EXT p= ".%d" TYPE
+    if TYPE == 21
+        set EXT ".mat"
+    elif TYPE == 28
+        set EXT ".tex"
+    elif TYPE == 48
+        set EXT ".shader"
+    elif TYPE == 49
+        get DUMMY long
+        getDstring TEST 4
+        if TEST == "<?xm"
+            math OFFSET += 4
+            math SIZE -= 4
+            set EXT ".xml"
+        endif
+    elif TYPE == 74
+        set EXT ".ani"
+    elif TYPE == 83
+        set EXT ".snd"
+        math OFFSET += 0x14
+        math SIZE -= 0x14
+        goto OFFSET
+        getDstring TEMP 4
+        if TEMP == "OggS"
+            set EXT ".ogg"
+        elif TEMP == "RIFF"
+            set EXT ".wav"
+        elif TEMP == "FORM"
+            set EXT ".aif"
+        else
+            goto OFFSET
+            get TEMP byte
+            if TEMP == 0xff
+                set EXT ".mp3"
+            elif TEMP == 0x49
+                goto OFFSET
+                getDstring TEMP 3
+                if TEMP == "ID3"
+                    set EXT ".mp3"
+                else
+                    math OFFSET -= 0x14
+                    math SIZE += 0x14
+                endif
+            else # roll back changes
+                math OFFSET -= 0x14
+                math SIZE += 0x14
+            endif
+        endif
+    elif TYPE == 115
+        set EXT ".script"
+    elif TYPE == 128
+        set EXT ".ttf"
+    elif TYPE == 150
+        set EXT ".bin"
+    elif TYPE == 152
+        math OFFSET += 0x10
+        math SIZE -= 0x10
+        set EXT ".ogm"
+    elif TYPE == 156
+        set EXT ".ter"
+    elif TYPE == 184
+        set EXT ".sbam"
+    elif TYPE == 194
+        set EXT ".tes"
+    endif
+
+    goto disttype_offset
+endfunction
+
+startfunction combine_splits
+    get BNAME basename
+    append
+    for i = 0
+        string SNAME p= "%s.split%d" BNAME i
+        open FDSE SNAME 0 EXIST
+        if EXIST == 0
+            break
+        endif
+        get SIZE asize
+        log MEMORY_FILE 0 SIZE
+    next i
+    append
+    get SIZE asize MEMORY_FILE
+    log BNAME 0 SIZE MEMORY_FILE
+endfunction
+
+startfunction testresS
+	if EXISTS == 1
+		get FSIZE asize 1
+		xmath BIAS "FSIZE - SIZE_RESS"
+		if BIAS == 0
+			print "%a% sound files from sound archive extracted. No residual data."
+		else
+			print "%a% sound files from sound archive extracted. Warning: %BIAS% bytes of residual data!\n"
+			callfunction retrieve 1
+		endif
+	endif
+endfunction
+
+startfunction retrieve # FSIZE = actual size of resS
+	print "Sorting..."
+	sortarray 0
+	print "done."
+	#xmath PRESIZE "4 * a"
+	#putVarChr MEMORY_FILE PRESIZE 0
+	log MEMORY_FILE 0 0
+	for i = 0 <= a
+		xmath n "i + 1"
+		getArray OFFSET 0 i
+		getArray SIZE 1 i
+		#xmath O_FIRST "i * 8" # *2 = index, *4 = field size
+		#xmath O_SECOND "(i * 8) + 4"
+		#putVarChr MEMORY_FILE O_FIRST OFFSET long
+		#putVarChr MEMORY_FILE O_SECOND SIZE long
+		if n <= a
+			getArray OFFSET_NXT 0 n
+		else # last entry
+			set OFFSET_NXT FSIZE
+		endif
+		xmath TEST_OFFSET "OFFSET + SIZE" # should match OFFSET2
+		if TEST_OFFSET != OFFSET_NXT
+			set OFFSET2 TEST_OFFSET
+			xmath SIZE2 "OFFSET_NXT - TEST_OFFSET"
+			if SIZE2 != 0
+				callfunction diff_type 1
+				string NAME p= "%s_%dto%d%s" ONAME TEST_OFFSET OFFSET2 EXT
+				log NAME OFFSET SIZE 1
+			endif
+		endif
+	next i
+	#get SIZE asize MEMORY_FILE
+	#string NAME p= "%s_file list" ONAME
+	#log NAME 0 SIZE MEMORY_FILE
+endfunction
+
+startfunction diff_type # from resS file (1)
+	putVarChr MEMORY_FILE SIZE2 0
+	log MEMORY_FILE 0 0
+	append
+	log MEMORY_FILE OFFSET2 SIZE2 1
+	append
+	goto 0 MEMORY_FILE
+	getDstring IDENT 4 MEMORY_FILE
+	if IDENT == "OggS"
+		set EXT ".ogg"
+	elif IDENT == "RIFF"
+		set EXT ".wav"
+	elif IDENT == "FORM"
+		set EXT ".aif"
+	elif IDENT == "FSB5"
+		set EXT ".fsb"
+	else
+		goto 0 MEMORY_FILE
+		get TEMP byte MEMORY_FILE
+		if TEMP == 0xff
+			set EXT ".mp3"
+		elif TEMP == 0x49
+			goto 0 MEMORY_FILE
+			getDstring TEMP 3 MEMORY_FILE
+			if TEMP == "ID3"
+				set EXT ".mp3"
+			else
+				set EXT ".snd2"
+			endif
+		endif
+	endif
+endfunction

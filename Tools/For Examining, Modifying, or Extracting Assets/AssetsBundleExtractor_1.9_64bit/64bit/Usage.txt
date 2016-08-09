@@ -1,0 +1,67 @@
+AssetsBundleExtractor v1.9
+
+
+Bundle files :
+Single file : 
+1) Start AssetsBundleExtractor, press File->Open and select the bundle file (Unity 4 and 5 are supported).
+2) To extract a .assets file, select the file and press Export.
+3) To import a .assets file, select the target file and press Import and then File->Save.
+
+Batch of files :
+1) Create a batch file. It is an UTF-8 encoded text file of which each line specifies a file or directory to add or remove from the bundle file list.
+Each line starts with + or -. Plus means that the directory or file should get added to the list, minus means that it should get removed.
+To specify if it is a file or directory, it is followed by FILE or DIR. The file or directory path comes after a space character.
+Each line can have a maximum of 510 bytes. If it is longer than that, the rest is cut off.
+An example file could look like this :
++DIR C:\Program Files (x86)\Steam\steamapps\common\7 Days to Die\Data\Bundles
+-FILE C:\Program Files (x86)\Steam\steamapps\common\7 Days to Die\Data\Bundles\TerrainTextures
+First, all files in the Bundles folder are added to the list. After that, the TerrainTextures file gets removed.
+The resulting list of files is then used to perform the batch export or import.
+
+2) Launch AssetsBundleExtractor with a command line like this :
+AssetsBundleExtractor -removetypetree batchexport <batch file path>
+
+-removetypetree removes the TypeTree of the exported .assets file so it can be used with Grim's UAE Beta 3. If you don't want to do this, remove it from the parameters.
+This exports all .assets files in the bundle files. If the bundle file path is "<directory>\<file name>.<extension>" or "<directory>\<file name>", the output file path is "<directory>\<file name>_<assets name in the bundle>.assets". As an example, the bundle file path could be "C:\folder\Bundle.unity3d" and the bundle file could contain a file named "CAB-1234". The output file would be "C:\folder\Bundle_CAB-1234.assets".
+
+AssetsBundleExtractor batchimport <batch file path>
+This imports all .assets files in the same path as they were previously exported into the asset bundles. If the bundle file path is "C:\folder\Bundle.unity3d" and it contains a file named "CAB-1234", the tool will look for "C:\folder\Bundle_CAB-1234.assets" and import it into the bundle file if it exists.
+
+Assets files :
+
+To view the assets in a .assets file or a bundle, start AssetsBundleExtractor, press File->Open and select the bundle or .assets file (Unity 4 and 5 are supported). If you opened an assets bundle, press the Info button to view a list of assets in the bundle. Otherwise, open mainData if possible.
+Opening the asset list might take some time but it usually doesn't freeze for a long time.
+Each asset has a file and a path id. The file id is the index of the assets file in the dependency tree. The path id is the id of the asset in the assets file. Because the file id in an asset is relative to its own assets file's dependencies (0 is the assets file the asset is inside, the following are indices in the dependency list), there is no reliable way to determine which assets file actually is referenced, except with the View Data functionality.
+You can build a tree view of the asset using the View Data button or export a dump of the type tree (which is faster to create). You can get the raw data using the Export Raw button.
+To modify an asset, you can either import a modified asset dump or modified raw data. Modified assets files can be saved directly. To modify asset bundles, you have to export the assets file first.
+The plugins menu gives you access to the different plugin options for the selected asset's file type.
+classdata_0E.dat is used for Unity 5 and classdata_09.dat is used for Unity 4. If you have another classdata file for another engine subversion, you can rename it to one of these file names.
+
+Asset type database editor :
+
+The asset type databases are used for the tree view or dumps of assets outside of bundle files. "classdata_0E.dat" is for Unity 5.0.Xf-releases and is mostly compatible to newer versions. "classdata_09.dat" should be compatible with most Unity 4.5+ releases.
+
+Each type has fields that can contain other fields or have a value. To add a field after the selection, press Add and leave the "Insert as child" checkbox unchecked. To add a field as the first child of the selection, check the checkbox.
+
+Valid value types are :
+SInt8/char (size : 1)
+UInt8 (size : 1)
+SInt16/short (size : 2)
+UInt16/unsigned short (size : 2)
+SInt32/int (size : 4)
+UInt32/unsigned int (size : 4)
+SInt64/long (size : 8)
+UInt64/unsigned long (size : 8)
+float (size : 4)
+double (size : 8)
+bool (size : 1)
+
+Each array field must have two child fields : int size and a data field of any type.
+A string contains an array that has char as its data type. The array always is aligned.
+"vector" is a type that contains an array.
+All fields that are or contain an array have -1 as their size, which means that they have a variable length.
+
+Alignment means that additional bytes are read after a field to ensure the following field's position inside the file is divisible by 4 for performance reasons.
+It is usually used if there are one or multiple 1-byte fields before a 4-byte field (except if the length of all smaller fields is divisible by 4). The same applies to 2-byte fields.
+
+PPtr<Type> fields (where Type can be any Object type) have a m_FileID (always int) and a m_PathID (int for Unity 4, SInt64 for Unity 5). They point to another asset (usually a Component type). 
